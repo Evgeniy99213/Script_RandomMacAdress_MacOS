@@ -5,13 +5,20 @@ const GET_MAC = `ifconfig en0 ether | grep -i ether`
 const SET_MAC = `sudo ifconfig en0 ether`
 
 
-const resetMacAddress = () => {
+function resetMacAddress() {
     try {
-        let r = (randomBytes(100)).toString('hex')
-        let newMAC = `${r.substring(0, 2)}:${r.substring(13, 15)}:${r.substring(26, 28)}:${r.substring(39, 41)}:${r.substring(42, 44)}:${r.substring(85, 87)}`
+        let random = (randomBytes(6)).toString('hex').split('')
+
+        let i = 2
+        function setMAC() {
+            random.splice(i, 0, ':')
+            i = i + 3
+            random.length < 17 ? setMAC() : null
+        } setMAC()
+
+        let newMAC = random.join('')
 
         let old = childProcess.execSync(GET_MAC).toString()
-
         childProcess.execSync(`${SET_MAC} ${newMAC}`)
         let updated = childProcess.execSync(GET_MAC).toString()
 
@@ -28,22 +35,8 @@ const resetMacAddress = () => {
         console.error(err)
     }
 
-}
+} resetMacAddress()
 
-resetMacAddress()
 
+/** Mac address will be changing every 2 hours, automatically */
 setInterval(resetMacAddress, 120*60*1000)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
